@@ -432,11 +432,15 @@ async function enableCamera(){
     let first = true;
     hands.onResults(res => {
       handLM = (res.multiHandLandmarks && res.multiHandLandmarks.length) ? res.multiHandLandmarks[0] : null;
-      if(first){ first = false; ready('hand', '✅ กล้องพร้อมแล้ว ลองยกมือดู'); }
+      if(first){ first = false; ready('hand', '✅ กล้องพร้อมแล้ว ลองยกมือดู');
+        if(G.playing) $('tip').textContent = '🤏 จีบนิ้วหยิบภาพ → ลากไปกล่องคำศัพท์ → 🖐️ แบมือปล่อย'; }
     });
     const camera = new Camera(cam, {onFrame: async () => { await hands.send({image:cam}); }, width:640, height:480, facingMode:'user'});
     await camera.start(); cam.classList.add('on');
     st.textContent = 'กำลังเตรียมตัวจับมือ...';
+    /* ตัวจับมือไม่ตอบใน 15 วิ (เครื่องช้า/ไม่มี WebGL) → ให้กดเริ่มแบบลากนิ้วไปก่อน ไม่ให้ปุ่มค้าง
+       ถ้าตัวจับมือพร้อมทีหลัง onResults จะเรียก ready('hand') เปลี่ยนเป็นโหมดมือให้เอง (เจอจริง 20 พ.ย. 69 บนเว็บจริง) */
+    setTimeout(() => { if(first) ready('pointer', '⚠ ตัวจับมือยังไม่พร้อม — เล่นแบบลากนิ้วไปก่อนได้ (พร้อมเมื่อไรใช้มือได้ทันที)'); }, 15000);
   }catch(err){
     ready('pointer', '⚠ เปิดกล้องไม่ได้ (' + ((err && err.message) || 'ไม่ทราบสาเหตุ') + ') → เล่นแบบลากด้วยนิ้ว/เมาส์');
   }
